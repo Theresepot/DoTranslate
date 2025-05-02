@@ -123,7 +123,7 @@ The `.exe` will appear in the `dist` folder.
 By default, Tesseract on Windows comes with English. For other languages (Chinese, Russian, etc.), download the `.traineddata` files from [here](https://github.com/tesseract-ocr/tessdata) and place them in your `tessdata` folder (e.g., `C:\Program Files\Tesseract-OCR\tessdata`).
 
 #### Troubleshooting
-- **The LibreNode translation API translation API can only process a limited number of characters at a time (typically three or four paragraphs), so if you encounter an error, simply reduce the number of lines in the text field to be translated.**
+- **The LibreNode API can only process a limited number of characters at a time (typically three or four paragraphs), so if you encounter an error, simply reduce the number of lines in the text field to be translated.**
 - If you get an error about Tesseract not found, double-check your PATH and that Tesseract is installed.
 - If you get a missing DLL error, make sure you installed the correct (64-bit or 32-bit) version of Python and Tesseract for your system.
 
