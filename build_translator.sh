@@ -1,7 +1,25 @@
 #!/bin/bash
 
-# Use the correct virtual environment
-source /home/user/apkbuild/apk/kivy_venv/bin/activate
+# Ensure virtual environment exists
+if [ ! -d "venv" ]; then
+    python3 -m venv venv
+fi
+source venv/bin/activate
+
+# Ensure Tesseract and required language packs are installed
+if ! command -v tesseract &> /dev/null; then
+    echo "Tesseract not found. Installing Tesseract and language packs..."
+    sudo apt-get update
+    sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim tesseract-ocr-chi-tra \
+        tesseract-ocr-rus tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa tesseract-ocr-ita
+fi
+# Check for required traineddata files
+for lang in eng chi_sim chi_tra rus deu fra spa ita; do
+    if [ ! -f "/usr/share/tesseract-ocr/5/tessdata/${lang}.traineddata" ]; then
+        echo "Warning: /usr/share/tesseract-ocr/5/tessdata/${lang}.traineddata not found!"
+        echo "Please ensure the language pack for $lang is installed."
+    fi
+done
 
 # Clean up previous builds
 rm -rf build/ dist/ __pycache__/ *.spec
@@ -71,6 +89,9 @@ EOL
 
 # Build the executable
 pyinstaller --clean --distpath dist/ translator.spec
+
+# Copy icon to dist directory
+cp icon.png dist/
 
 # Create README file
 cat > dist/README.txt << 'EOL'

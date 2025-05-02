@@ -44,7 +44,11 @@ Categories=Utility;
 EOF
 
 # Set permissions
-chmod +x $INSTALL_DIR/translator
+if [ -f "$INSTALL_DIR/translator" ]; then
+    chmod +x $INSTALL_DIR/translator
+else
+    echo "Error: $INSTALL_DIR/translator not found! Installation may have failed."
+fi
 chown -R root:root $INSTALL_DIR
 
 echo "Installation complete! You can find the application in your applications menu."
