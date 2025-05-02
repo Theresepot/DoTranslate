@@ -136,8 +136,9 @@ By default, Tesseract on Windows comes with English. For other languages (Chines
 - **Open source**: Free to use, modify, and share
 
 ## Screenshots
-*(Add screenshots here if you wish)*
-
+![Main Window](screenshots/screenshot.png)
+![Translation of png](screenshots/screenshot1.png)
+![Translation of pdf](screenshots/screenshot2.png)
 ## Contributing
 Pull requests and suggestions are welcome!
 
