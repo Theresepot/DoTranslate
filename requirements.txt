@@ -1,3 +1,6 @@
 kivy==2.2.1
 requests==2.31.0
-pyinstaller==6.3.0 
+pyinstaller==6.3.0
+pytesseract==0.3.10
+Pillow==10.2.0
+PyPDF2==3.0.1
