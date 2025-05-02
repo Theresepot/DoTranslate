@@ -7,7 +7,7 @@ A powerful, privacy-friendly desktop translation app with offline OCR and file s
 - **Multiple Translation Engines**: Google, DuckDuckGo, Yandex, DeepL (via https://translate.librenode.com/)
 - **Offline OCR**: Extract text from images (PNG, JPG, JPEG) and PDFs using Tesseract and PyPDF2, all locally
 - **Privacy First**: Text extraction from files is done 100% offline; only the text you choose to translate is sent to the translation API
-- **Modern Desktop UI**: Built with Kivy for a clean, responsive, and cross-platform experience
+- **Simple Desktop UI**: Built with Kivy for a clean, responsive, and cross-platform experience
 - **Language Support**: English, Spanish, French, German, Russian, Chinese, Italian
 - **Easy Language Swapping**: One-click swap between source and target languages
 - **Clipboard Integration**: Copy/paste support for both input and translated text
