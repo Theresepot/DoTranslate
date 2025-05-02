@@ -68,7 +68,12 @@ cd dist
 - Run the installer and follow the prompts.
 - **Remember the install location** (e.g., `C:\Program Files\Tesseract-OCR`).
 
-#### Add Tesseract to your PATH:
+#### Add Tesseract to your PATH (Automated):
+- Run the provided `add_tesseract_to_path.bat` script as administrator (right-click → "Run as administrator").
+- If you installed Tesseract in a different location, edit the script and change the path at the top.
+- You may need to restart your terminal or computer for the change to take effect.
+
+#### Add Tesseract to your PATH (Manual):
 - Open the Start menu, search for "Environment Variables", and open "Edit the system environment variables".
 - Click "Environment Variables..."
 - Under "System variables", find and select the `Path` variable, then click "Edit..."
