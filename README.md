@@ -54,6 +54,73 @@ cd dist
 ./translator
 ```
 
+---
+
+## Windows Installation
+
+### 1. Install Python
+- Download Python 3.8 or newer from the [official Python website](https://www.python.org/downloads/windows/).
+- During installation, **check the box that says "Add Python to PATH"**.
+- Complete the installation.
+
+### 2. Install Tesseract OCR
+- Download the Tesseract installer for Windows from the [official Tesseract releases page](https://github.com/tesseract-ocr/tesseract/wiki#windows).
+- Run the installer and follow the prompts.
+- **Remember the install location** (e.g., `C:\Program Files\Tesseract-OCR`).
+
+#### Add Tesseract to your PATH:
+- Open the Start menu, search for "Environment Variables", and open "Edit the system environment variables".
+- Click "Environment Variables..."
+- Under "System variables", find and select the `Path` variable, then click "Edit..."
+- Click "New" and add the path to your Tesseract install folder (e.g., `C:\Program Files\Tesseract-OCR`)
+- Click OK to close all dialogs.
+
+### 3. Install Git (optional, but recommended)
+- Download Git for Windows from [git-scm.com](https://git-scm.com/download/win) and install it.
+
+### 4. Download DoTranslate
+#### Option 1: Using Git
+```sh
+git clone https://github.com/<your-username>/DoTranslate.git
+cd DoTranslate
+```
+#### Option 2: Download ZIP
+- Go to your GitHub repo page.
+- Click the green "Code" button, then "Download ZIP".
+- Extract the ZIP file and open the extracted folder.
+
+### 5. Create and Activate a Virtual Environment
+```sh
+python -m venv venv
+venv\Scripts\activate
+```
+
+### 6. Install Python Dependencies
+```sh
+pip install -r requirements.txt
+```
+
+### 7. Run the App
+```sh
+python translator.py
+```
+
+### 8. (Optional) Build a Standalone Executable
+If you want a Windows `.exe`:
+```sh
+pyinstaller --onefile --windowed translator.py
+```
+The `.exe` will appear in the `dist` folder.
+
+#### Tesseract Language Packs
+By default, Tesseract on Windows comes with English. For other languages (Chinese, Russian, etc.), download the `.traineddata` files from [here](https://github.com/tesseract-ocr/tessdata) and place them in your `tessdata` folder (e.g., `C:\Program Files\Tesseract-OCR\tessdata`).
+
+#### Troubleshooting
+- If you get an error about Tesseract not found, double-check your PATH and that Tesseract is installed.
+- If you get a missing DLL error, make sure you installed the correct (64-bit or 32-bit) version of Python and Tesseract for your system.
+
+---
+
 ## Why Use DoTranslate?
 - **Works with images and PDFs**: Extract text from files locally, even when offline
 - **No vendor lock-in**: Choose your preferred translation engine
