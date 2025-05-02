@@ -18,7 +18,7 @@ A powerful, privacy-friendly desktop translation app with offline OCR and file s
 
 ### 1. Clone the repository
 ```bash
-git clone <your-github-repo-url>
+git clone https://github.com/Theresepot/DoTranslate.git
 cd DoTranslate
 ```
 
@@ -88,7 +88,7 @@ cd dist
 ### 4. Download DoTranslate
 #### Option 1: Using Git
 ```sh
-git clone https://github.com/<your-username>/DoTranslate.git
+git clone https://github.com/Theresepot/DoTranslate.git
 cd DoTranslate
 ```
 #### Option 2: Download ZIP
