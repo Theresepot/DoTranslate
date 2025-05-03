@@ -22,6 +22,9 @@ import pytesseract
 from PIL import Image
 import PyPDF2
 import io
+import re
+
+MAX_CHARS = 1000  # Maximum characters per API request (adjust as needed)
 
 # Configure keyboard shortcuts
 Config.set('kivy', 'exit_on_escape', '0')
@@ -304,7 +307,7 @@ class TranslationApp(App):
         text = self.input_text.text
         if not text:
             return
-            
+        
         # Map language names to their correct API codes
         language_codes = {
             'english': 'en',
@@ -328,36 +331,64 @@ class TranslationApp(App):
         target_lang = language_codes.get(self.title_bar.target_lang.text.lower(), 'es')
         engine = engine_codes.get(self.engine.text.lower(), 'google')
         
-        try:
-            # API endpoint with query parameters
-            url = f"https://translate.librenode.com/api/translate?from={source_lang}&to={target_lang}&engine={engine}&text={requests.utils.quote(text)}"
-            
-            # Print debug information
-            print(f"Making request to: {url}")
-            
-            # Make API request with proper headers
-            headers = {
-                'Accept': 'application/json'
-            }
-            
-            response = requests.get(url, headers=headers)
-            
-            # Print response details for debugging
-            print(f"Response status code: {response.status_code}")
-            print(f"Response headers: {response.headers}")
-            print(f"Response content: {response.text[:500]}")  # Print first 500 chars of response
-            
-            response.raise_for_status()
-            
-            try:
-                result = response.json()
-                if 'translated-text' in result:
-                    self.result_text.text = result['translated-text']
+        def chunk_text(text, max_chars):
+            # If the text contains CJK (Chinese, Japanese, Korean) characters, split by characters
+            cjk_re = re.compile(r'[\u4e00-\u9fff\u3400-\u4dbf\u3040-\u30ff\uac00-\ud7af]')
+            if cjk_re.search(text):
+                # Split by max_chars characters
+                return [text[i:i+max_chars] for i in range(0, len(text), max_chars)]
+            # Otherwise, split by paragraphs, but keep chunks under max_chars
+            paragraphs = text.split('\n')
+            chunks = []
+            current = ''
+            for para in paragraphs:
+                if len(current) + len(para) + 1 > max_chars:
+                    if current:
+                        chunks.append(current)
+                        current = ''
+                if len(para) > max_chars:
+                    # If a single paragraph is too long, split it
+                    for i in range(0, len(para), max_chars):
+                        chunks.append(para[i:i+max_chars])
                 else:
-                    self.result_text.text = f"Translation failed: Unexpected response format. Response: {response.text[:100]}"
-            except json.JSONDecodeError as json_err:
-                self.result_text.text = f"Error parsing response: {str(json_err)}. Response: {response.text[:100]}"
-            
+                    if current:
+                        current += '\n' + para
+                    else:
+                        current = para
+            if current:
+                chunks.append(current)
+            return chunks
+        
+        chunks = chunk_text(text, MAX_CHARS)
+        translations = []
+        
+        try:
+            for idx, chunk in enumerate(chunks):
+                url = "https://translate.librenode.com/api/translate"
+                headers = {
+                    'Accept': 'application/json'
+                }
+                payload = {
+                    'from': source_lang,
+                    'to': target_lang,
+                    'engine': engine,
+                    'text': chunk
+                }
+                print(f"Making POST request to: {url} with payload length {len(chunk)}")
+                response = requests.post(url, headers=headers, data=payload)
+                print(f"Response status code: {response.status_code}")
+                print(f"Response headers: {response.headers}")
+                print(f"Response content: {response.text[:500]}")
+                response.raise_for_status()
+                try:
+                    result = response.json()
+                    if 'translated-text' in result:
+                        translations.append(result['translated-text'])
+                    else:
+                        translations.append(f"[Chunk {idx+1} failed: Unexpected response format]")
+                except json.JSONDecodeError as json_err:
+                    translations.append(f"[Chunk {idx+1} error: {str(json_err)}]")
+            self.result_text.text = '\n'.join(translations)
         except requests.exceptions.HTTPError as http_err:
             if response.status_code == 400:
                 try:

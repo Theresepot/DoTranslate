@@ -13,10 +13,21 @@ if ! command -v tesseract &> /dev/null; then
     sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim tesseract-ocr-chi-tra \
         tesseract-ocr-rus tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa tesseract-ocr-ita
 fi
+
+# Detect tessdata directory
+if [ -d "/usr/share/tesseract-ocr/5/tessdata" ]; then
+    TESSDATA_DIR="/usr/share/tesseract-ocr/5/tessdata"
+elif [ -d "/usr/share/tesseract-ocr/4.00/tessdata" ]; then
+    TESSDATA_DIR="/usr/share/tesseract-ocr/4.00/tessdata"
+else
+    echo "Could not find Tesseract tessdata directory!"
+    exit 1
+fi
+
 # Check for required traineddata files
 for lang in eng chi_sim chi_tra rus deu fra spa ita; do
-    if [ ! -f "/usr/share/tesseract-ocr/5/tessdata/${lang}.traineddata" ]; then
-        echo "Warning: /usr/share/tesseract-ocr/5/tessdata/${lang}.traineddata not found!"
+    if [ ! -f "$TESSDATA_DIR/${lang}.traineddata" ]; then
+        echo "Warning: $TESSDATA_DIR/${lang}.traineddata not found!"
         echo "Please ensure the language pack for $lang is installed."
     fi
 done
@@ -28,21 +39,20 @@ rm -rf build/ dist/ __pycache__/ *.spec
 pip install kivy requests pytesseract Pillow PyPDF2 pyinstaller
 
 # Create the spec file
-cat > translator.spec << 'EOL'
+cat > translator.spec << EOL
 # -*- mode: python ; coding: utf-8 -*-
 
 block_cipher = None
 
-# Add Tesseract data files
 tesseract_data = [
-    ('/usr/share/tesseract-ocr/5/tessdata/eng.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/chi_sim.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/chi_tra.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/rus.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/deu.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/fra.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/spa.traineddata', 'tessdata'),
-    ('/usr/share/tesseract-ocr/5/tessdata/ita.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/eng.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/chi_sim.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/chi_tra.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/rus.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/deu.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/fra.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/spa.traineddata', 'tessdata'),
+    ('$TESSDATA_DIR/ita.traineddata', 'tessdata'),
 ]
 
 a = Analysis(
