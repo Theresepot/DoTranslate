@@ -13,6 +13,12 @@ A powerful, privacy-friendly desktop translation app with offline OCR and file s
 - **Clipboard Integration**: Copy/paste support for both input and translated text
 - **File Chooser**: Select images or PDFs for instant text extraction
 - **Custom Icons**: Beautiful app icons included
+  
+## Screenshots
+![Main Window](screenshots/screenshot.png)
+![Translation of png](screenshots/screenshot1.png)
+![Translation of pdf](screenshots/screenshot2.png)
+  
 
 ## Installation
 
@@ -136,10 +142,7 @@ By default, Tesseract on Windows comes with English. For other languages (Chines
 - **Cross-platform**: Works on Linux, Windows, and macOS (with minor adjustments)
 - **Open source**: Free to use, modify, and share
 
-## Screenshots
-![Main Window](screenshots/screenshot.png)
-![Translation of png](screenshots/screenshot1.png)
-![Translation of pdf](screenshots/screenshot2.png)
+
 ## Contributing
 Pull requests and suggestions are welcome!
 
