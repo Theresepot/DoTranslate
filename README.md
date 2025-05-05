@@ -1,4 +1,4 @@
-# DoTranslate
+# dotranslate
 
 A powerful, privacy-friendly desktop translation app with offline OCR and file support, powered by the LibreNode translation API.
 
@@ -24,8 +24,8 @@ A powerful, privacy-friendly desktop translation app with offline OCR and file s
 
 ### 1. Clone the repository
 ```bash
-git clone https://github.com/Theresepot/DoTranslate.git
-cd DoTranslate
+git clone https://github.com/theresepot/dotranslate.git
+cd dotranslate
 ```
 
 ### 2. Install system dependencies
@@ -91,11 +91,11 @@ cd dist
 ### 3. Install Git (optional, but recommended)
 - Download Git for Windows from [git-scm.com](https://git-scm.com/download/win) and install it.
 
-### 4. Download DoTranslate
+### 4. Download dotranslate
 #### Option 1: Using Git
 ```sh
-git clone https://github.com/Theresepot/DoTranslate.git
-cd DoTranslate
+git clone https://github.com/theresepot/dotranslate.git
+cd dotranslate
 ```
 #### Option 2: Download ZIP
 - Go to your GitHub repo page.
@@ -135,7 +135,7 @@ By default, Tesseract on Windows comes with English. For other languages (Chines
 
 ---
 
-## Why Use DoTranslate?
+## Why Use dotranslate?
 - **Works with images and PDFs**: Extract text from files locally, even when offline
 - **No vendor lock-in**: Choose your preferred translation engine
 - **Privacy-respecting**: Only the text you want to translate is sent to the API; file contents never leave your computer
@@ -159,4 +159,4 @@ MIT License
 
 ---
 
-**DoTranslate**: The easiest way to translate anything, from anywhere, with privacy and power. 
+**dotranslate**: The easiest way to translate anything, from anywhere, with privacy and power. 
