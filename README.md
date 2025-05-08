@@ -22,42 +22,30 @@ A powerful, privacy-friendly desktop translation app with offline OCR and file s
 
 ## Installation
 
-### 1. Clone the repository
+### 1. Build and Install the Standalone Executable (Recommended)
+This is the easiest and most user-friendly way to install dotranslate. It will build the app, install it to `/opt/translator`, and add it to your applications menu.
+
+```bash
+sudo ./install_and_build.sh
+```
+
+After installation, you can launch dotranslate from your applications menu or by running:
+```bash
+/opt/translator/translator
+```
+
+---
+
+### 2. (Optional) Run with Python (No Build)
+If you prefer to run the app directly with Python (for development or troubleshooting):
+
 ```bash
 git clone https://github.com/theresepot/dotranslate.git
 cd dotranslate
-```
-
-### 2. Install system dependencies
-- **Tesseract OCR** (for image text extraction):
-  ```bash
-  sudo apt-get update
-  sudo apt-get install -y tesseract-ocr tesseract-ocr-chi-sim tesseract-ocr-chi-tra tesseract-ocr-rus tesseract-ocr-deu tesseract-ocr-fra tesseract-ocr-spa tesseract-ocr-ita
-  ```
-- **Python 3.8+**
-
-### 3. Create and activate a virtual environment (recommended)
-```bash
 python3 -m venv venv
 source venv/bin/activate
-```
-
-### 4. Install Python dependencies
-```bash
 pip install -r requirements.txt
-```
-
-### 5. Run the app
-```bash
 python translator.py
-```
-
-### 6. (Optional) Build a standalone executable
-```bash
-./build_translator.sh
-cd dist
-./install.sh
-./translator
 ```
 
 ---

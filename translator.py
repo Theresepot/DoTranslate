@@ -23,6 +23,8 @@ from PIL import Image
 import PyPDF2
 import io
 import re
+from PyDictionary import PyDictionary
+import nltk
 
 MAX_CHARS = 1000  # Maximum characters per API request (adjust as needed)
 
@@ -94,6 +96,8 @@ class TranslationApp(App):
         self.font_path = self._find_font()
         self.file_chooser = None
         self.popup = None
+        self.thesaurus = PyDictionary()
+        self.enabled_thesaurus_langs = set(['english'])  # Default to English; user can add more
     
     def _find_font(self):
         """Find a suitable font for Chinese characters"""
@@ -218,7 +222,7 @@ class TranslationApp(App):
             hint_text='Enter text to translate...',
             size_hint_y=0.4,  # Take 40% of available height
             font_name=self.font_path if self.font_path else '',
-            font_size=14,
+            font_size=16,
             allow_copy=True
         )
         
@@ -227,9 +231,12 @@ class TranslationApp(App):
             size_hint_y=None,
             height=dp(50),
             spacing=10,
-            padding=[10, 5]
+            padding=[10, 5],
+            orientation='horizontal',
+            # Remove default stretching
+            size_hint_x=None,
+            width=dp(900)  # Fixed width for the button row
         )
-        
         # Engine spinner with fixed size
         self.engine = Spinner(
             text='Google',
@@ -238,7 +245,6 @@ class TranslationApp(App):
             size=(dp(150), dp(40)),
             pos_hint={'center_y': 0.5}
         )
-        
         # File selection button with fixed size
         file_btn = Button(
             text='Select Image/PDF',
@@ -247,7 +253,6 @@ class TranslationApp(App):
             pos_hint={'center_y': 0.5}
         )
         file_btn.bind(on_press=self.show_file_chooser)
-        
         # Translate button with fixed size
         translate_btn = Button(
             text='Translate',
@@ -256,7 +261,6 @@ class TranslationApp(App):
             pos_hint={'center_y': 0.5}
         )
         translate_btn.bind(on_press=self.translate_text)
-        
         # Copy button with fixed size
         copy_btn = Button(
             text='Copy Translation',
@@ -265,16 +269,38 @@ class TranslationApp(App):
             pos_hint={'center_y': 0.5}
         )
         copy_btn.bind(on_press=self.copy_translation)
-        
-        # Add buttons to engine layout with flexible space between them
-        engine_layout.add_widget(self.engine)
-        engine_layout.add_widget(Widget(size_hint_x=0.1))  # Flexible space
-        engine_layout.add_widget(file_btn)
-        engine_layout.add_widget(Widget(size_hint_x=0.1))  # Flexible space
-        engine_layout.add_widget(translate_btn)
-        engine_layout.add_widget(Widget(size_hint_x=0.1))  # Flexible space
-        engine_layout.add_widget(copy_btn)
-        engine_layout.add_widget(Widget(size_hint_x=0.1))  # Flexible space
+        # Thesaurus language selection button
+        thesaurus_btn = Button(
+            text='Thesaurus Languages',
+            size_hint=(None, None),
+            size=(dp(180), dp(40)),
+            pos_hint={'center_y': 0.5}
+        )
+        thesaurus_btn.bind(on_press=self.select_thesaurus_languages)
+        # Container to left-align the buttons
+        left_buttons = BoxLayout(orientation='horizontal', size_hint=(None, 1))
+        left_buttons.width = sum([
+            dp(150),  # engine
+            10,
+            dp(150),  # file_btn
+            10,
+            dp(150),  # translate_btn
+            10,
+            dp(150),  # copy_btn
+            10,
+            dp(180),  # thesaurus_btn
+            10
+        ])
+        left_buttons.spacing = 10
+        # Add buttons to left_buttons
+        left_buttons.add_widget(self.engine)
+        left_buttons.add_widget(file_btn)
+        left_buttons.add_widget(translate_btn)
+        left_buttons.add_widget(copy_btn)
+        left_buttons.add_widget(thesaurus_btn)
+        # Add left_buttons to engine_layout
+        engine_layout.add_widget(left_buttons)
+        # Remove extra flexible spaces
         
         # Result text area
         self.result_text = TextInput(
@@ -283,7 +309,7 @@ class TranslationApp(App):
             hint_text='Translation will appear here...',
             size_hint_y=0.4,  # Take 40% of available height
             font_name=self.font_path if self.font_path else '',
-            font_size=14,
+            font_size=16,
             allow_copy=True
         )
         
@@ -382,13 +408,28 @@ class TranslationApp(App):
                 response.raise_for_status()
                 try:
                     result = response.json()
-                    if 'translated-text' in result:
+                    # Deepl-specific error handling
+                    if engine == 'deepl' and (not result.get('translated-text')):
+                        translations.append('[Deepl translation failed: No result returned. Try another engine or check API status.]')
+                    elif 'translated-text' in result:
                         translations.append(result['translated-text'])
+                        # Save word_choices for thesaurus if present
+                        if idx == 0 and result.get('word_choices'):
+                            self.last_word_choices = result['word_choices']
+                        else:
+                            self.last_word_choices = None
                     else:
                         translations.append(f"[Chunk {idx+1} failed: Unexpected response format]")
                 except json.JSONDecodeError as json_err:
                     translations.append(f"[Chunk {idx+1} error: {str(json_err)}]")
             self.result_text.text = '\n'.join(translations)
+            # Thesaurus auto-trigger: only if single word, not Chinese, and language enabled
+            result_text = self.result_text.text.strip()
+            target_lang = self.title_bar.target_lang.text.lower()
+            if (len(result_text.split()) == 1 and
+                target_lang != 'chinese' and
+                target_lang in self.enabled_thesaurus_langs):
+                self.result_text.text = self.get_thesaurus_text(result_text, target_lang)
         except requests.exceptions.HTTPError as http_err:
             if response.status_code == 400:
                 try:
@@ -406,6 +447,74 @@ class TranslationApp(App):
     def copy_translation(self, instance):
         if self.result_text.text:
             Clipboard.copy(self.result_text.text)
+    
+    def select_thesaurus_languages(self, instance=None):
+        # Supported languages (except Chinese)
+        supported = ['english', 'spanish', 'french', 'german', 'russian', 'italian']
+        content = BoxLayout(orientation='vertical', spacing=5)
+        checkboxes = {}
+        from kivy.uix.checkbox import CheckBox
+        for lang in supported:
+            row = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(40))
+            cb = CheckBox(active=(lang in self.enabled_thesaurus_langs))
+            checkboxes[lang] = cb
+            row.add_widget(cb)
+            row.add_widget(Label(text=lang.title(), size_hint_x=1))
+            content.add_widget(row)
+        btn_row = BoxLayout(size_hint_y=None, height=dp(44))
+        save_btn = Button(text='Save', size_hint_x=0.5)
+        cancel_btn = Button(text='Cancel', size_hint_x=0.5)
+        btn_row.add_widget(save_btn)
+        btn_row.add_widget(cancel_btn)
+        content.add_widget(btn_row)
+        popup = Popup(title='Select Thesaurus Languages', content=content, size_hint=(0.6, 0.7))
+        def save_cb(instance):
+            self.enabled_thesaurus_langs = set(lang for lang, cb in checkboxes.items() if cb.active)
+            popup.dismiss()
+        save_btn.bind(on_press=save_cb)
+        cancel_btn.bind(on_press=popup.dismiss)
+        popup.open()
+
+    def get_thesaurus_text(self, word, lang):
+        # For English, use NLTK WordNet
+        if lang == 'english':
+            try:
+                nltk.data.find('corpora/wordnet')
+            except LookupError:
+                nltk.download('wordnet')
+            synonyms = []
+            antonyms = []
+            from nltk.corpus import wordnet
+            for syn in wordnet.synsets(word):
+                for l in syn.lemmas():
+                    if l.name().lower() not in synonyms:
+                        synonyms.append(l.name().lower())
+                    if l.antonyms():
+                        for ant in l.antonyms():
+                            if ant.name().lower() not in antonyms:
+                                antonyms.append(ant.name().lower())
+            thesaurus_lines = [f"Thesaurus for '{word}' ({lang.title()}):"]
+            if synonyms:
+                thesaurus_lines.append(f"Synonyms: {', '.join(synonyms)}")
+            else:
+                thesaurus_lines.append("No synonyms found.")
+            if antonyms:
+                thesaurus_lines.append(f"Antonyms: {', '.join(antonyms)}")
+            else:
+                thesaurus_lines.append("No antonyms found.")
+            return '\n'.join(thesaurus_lines)
+        # For other languages, use API word_choices if available
+        elif hasattr(self, 'last_word_choices') and self.last_word_choices:
+            synonyms = [w['word'] for w in self.last_word_choices if w.get('word')]
+            thesaurus_lines = [f"Thesaurus for '{word}' ({lang.title()}):"]
+            if synonyms:
+                thesaurus_lines.append(f"Synonyms: {', '.join(synonyms)}")
+            else:
+                thesaurus_lines.append("No synonyms found.")
+            thesaurus_lines.append("No antonyms found.")
+            return '\n'.join(thesaurus_lines)
+        else:
+            return f"Thesaurus for '{word}' ({lang.title()}):\nNo synonyms found.\nNo antonyms found.\n(Thesaurus is only available for English or when supported by the translation API.)"
 
 if __name__ == '__main__':
     TranslationApp().run()
