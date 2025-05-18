@@ -36,7 +36,7 @@ done
 rm -rf build/ dist/ __pycache__/ *.spec
 
 # Install required packages
-pip install kivy requests pytesseract Pillow PyPDF2 pyinstaller
+pip install kivy requests pytesseract Pillow PyPDF2 pyinstaller pydictionary nltk
 
 # Create the spec file
 cat > translator.spec << EOL
